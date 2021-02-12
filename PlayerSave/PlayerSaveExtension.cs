@@ -276,7 +276,7 @@ namespace PlayerSave
 
         static NbtInt GetFoodNbt(this Player player)
         {
-            return new NbtInt("foodlevel", player.HungerManager.Hunger);
+            return new NbtInt("foodLevel", player.HungerManager.Hunger);
         }
 
         static NbtList GetNbtEffects(this Player player)
