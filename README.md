@@ -9,6 +9,6 @@ MINET Plugin | PlayerSave
 - [x] Player Level
 - [x] Player XpP, XpLevel
 - [x] Player Health
-- [x] Player foodlevel, foodExhaustionLevel, foodSaturationLevel
+- [x] Player foodLevel, foodExhaustionLevel, foodSaturationLevel
 - [x] Player playerGameType
 - [ ] TODO..
