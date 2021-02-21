@@ -3,12 +3,21 @@ MINET Plugin | PlayerSave
 
 [PlayerSave 원작자 - 마루](https://github.com/wsj7178)
 
-## 저장되는 데이터
-- [x] Player Inventory
-- [x] Player Pos, Rotation
-- [x] Player Level
-- [x] Player XpP, XpLevel
-- [x] Player Health
-- [x] Player foodLevel, foodExhaustionLevel, foodSaturationLevel
-- [x] Player playerGameType
-- [ ] TODO..
+## 저장되는 데이터 (PMMP 구현)
+- [x] firstPlayed, lastPlayed
+- [x] Pos, Motionm Rotation
+- [x] Level
+- [x] Inventory, SelectedInventorySlot
+- [ ] EnderChestInventory
+- [x] Achievements
+- [ ] ActiveEffects
+- [x] playerGameType
+- [x] FallDistance
+- [x] Fire
+- [x] Air
+- [x] OnGround
+- [x] Invulnerable
+- [x] NameTag
+- [x] Health
+- [x] XpP, XpLevel
+- [x] foodSaturationLevel, foodExhaustionLevel, foodLevel
