@@ -15,15 +15,18 @@ namespace PlayerSave
     {
         public static void Load(this Player player)
         {
+
+            string path = Config.GetProperty("PluginDirectory", ".\\") + "\\PlayerSave\\players\\" + player.PlayerInfo.Username.ToLower() + ".dat";
+
+            if (!File.Exists(path))
+            {
+                CreatePlayerData(player);
+                return;
+            }
+
+            
             try
             {
-                string path = Config.GetProperty("PluginDirectory", ".\\") + "\\PlayerSave\\players\\" + player.PlayerInfo.Username.ToLower() + ".dat";
-
-                if (!File.Exists(path))
-                {
-                    CreateData(player);
-                }
-
                 NbtFile file = new NbtFile();
 
                 file.LoadFromFile(path, NbtCompression.ZLib, null);
@@ -54,7 +57,7 @@ namespace PlayerSave
                 //    NbtCompound effectNbt = tag as NbtCompound;
                 //}
 
-                player.HungerManager.Hunger = nbt["foodlevel"].IntValue;
+                player.HungerManager.Hunger = nbt["foodLevel"].IntValue;
                 player.HungerManager.Saturation = nbt["foodSaturationLevel"].FloatValue;
                 player.HungerManager.Exhaustion = nbt["foodExhaustionLevel"].FloatValue;
 
@@ -106,56 +109,111 @@ namespace PlayerSave
                 Console.WriteLine(e.StackTrace);
                 Console.ForegroundColor = col;
             }
+            
         }
 
-        public static void CreateData(Player player, bool async = false)
+        public static void CreatePlayerData(Player player, bool async = false)
         {
-            NbtCompound namedTag = new NbtCompound("");
-            namedTag.Add(player.GetNbtPos());
-            namedTag.Add(player.GetNbtRotation());
 
-            namedTag.Add(player.GetNbtHealth());
-            namedTag.Add(player.GetNbtEffects());
+            NbtCompound namedTag = new NbtCompound("")
+            {
 
-            namedTag.Add(player.GetFoodNbt());
-            namedTag.Add(player.GetNbtFoodExhaustionLevel());
-            namedTag.Add(player.GetNbtFoodSaturationLevel());
+                new NbtLong("firstPlayed", Microtime()),
+                new NbtLong("lastPlayed", Microtime()),
 
-            namedTag.Add(player.GetNbtXpLevel());
-            namedTag.Add(player.GetNbtXpP());
+                new NbtList("Pos", NbtTagType.Double)
+                {
+                    new NbtDouble(player.KnownPosition.X),
+                    new NbtDouble(player.KnownPosition.Y),
+                    new NbtDouble(player.KnownPosition.Z)
+                },
 
-            namedTag.Add(player.GetNbtInventory());
-            namedTag.Add(player.GetNbtSelectedInventorySlot());
+                new NbtList("Motion", NbtTagType.Double)
+                {
+                    new NbtDouble(0.0),
+                    new NbtDouble(0.0),
+                    new NbtDouble(0.0)
+                },
 
-            namedTag.Add(player.GetNbtLevel());
+                new NbtList("Rotation", NbtTagType.Float)
+                {
+                    new NbtFloat(player.KnownPosition.Yaw),
+                    new NbtFloat(player.KnownPosition.Pitch)
+                },
 
-            namedTag.Add(player.GetNbtPlayerGameType());
+                new NbtString("Level", player.Level.LevelName ?? ""),
+
+                new NbtList("Inventory", NbtTagType.Compound),
+                new NbtList("EnderChestInventory", NbtTagType.Compound),
+
+                new NbtInt("SelectedInventorySlot", player.Inventory.InHandSlot),
+
+                new NbtCompound("Achievements"),
+
+                new NbtList("ActiveEffects", NbtTagType.Compound),
+
+                new NbtInt("playerGameType", (int) player.GameMode),
+
+                new NbtFloat("FallDistance", (float) 0.0),
+
+                new NbtShort("Fire", 0),
+
+                new NbtShort("Air", 300),
+
+                new NbtByte("OnGround", 1),
+
+                new NbtByte("Invulnerable", 0),
+
+                new NbtString("NameTag", player.PlayerInfo.Username),
+
+                new NbtFloat("Health", player.HealthManager.Health),
+
+                new NbtFloat("XpP", player.ExperienceManager.Experience),
+
+                new NbtInt("XpLevel", (int) player.ExperienceManager.ExperienceLevel),
+
+                new NbtFloat("foodSaturationLevel", (float) player.HungerManager.Saturation),
+
+                new NbtFloat("foodExhaustionLevel", (float) player.HungerManager.Exhaustion),
+
+                new NbtInt("foodLevel", player.HungerManager.Hunger)
+
+            };
 
             player.GetServer().SavePlayerData(player.PlayerInfo.Username, namedTag, async);
+
         }
 
-            public static void Save(this Player player, bool async = false)
+        public static int Microtime()
         {
-            NbtCompound namedTag = new NbtCompound("");
-            namedTag.Add(player.GetNbtPos());
-            namedTag.Add(player.GetNbtRotation());
+            TimeSpan span = DateTime.Now - new DateTime(1970, 1, 1);
+            return (int) span.TotalSeconds;
+        }
 
-            namedTag.Add(player.GetNbtHealth());
-            namedTag.Add(player.GetNbtEffects());
+        public static void Save(this Player player, bool async = false)
+        {
+            NbtCompound namedTag = new NbtCompound("")
+            {
+                player.GetNbtPos(),
+                player.GetNbtRotation(),
 
-            namedTag.Add(player.GetFoodNbt());
-            namedTag.Add(player.GetNbtFoodExhaustionLevel());
-            namedTag.Add(player.GetNbtFoodSaturationLevel());
+                player.GetNbtHealth(),
+                //player.GetNbtEffects(),
 
-            namedTag.Add(player.GetNbtXpLevel());
-            namedTag.Add(player.GetNbtXpP());
+                player.GetFoodNbt(),
+                player.GetNbtFoodExhaustionLevel(),
+                player.GetNbtFoodSaturationLevel(),
 
-            namedTag.Add(player.GetNbtInventory());
-            namedTag.Add(player.GetNbtSelectedInventorySlot());
+                player.GetNbtXpLevel(),
+                player.GetNbtXpP(),
 
-            namedTag.Add(player.GetNbtLevel());
+                player.GetNbtInventory(),
+                player.GetNbtSelectedInventorySlot(),
 
-            namedTag.Add(player.GetNbtPlayerGameType());
+                player.GetNbtLevel(),
+
+                player.GetNbtPlayerGameType()
+            };
 
             player.GetServer().SavePlayerData(player.PlayerInfo.Username, namedTag, async);
         }
@@ -212,12 +270,14 @@ namespace PlayerSave
 
         public static NbtCompound NbtSerialize(this Item item, int slot = 1)
         {
-            NbtCompound nbt = new NbtCompound();
-            nbt.Add(new NbtShort("id", item.Id));
-            nbt.Add(new NbtByte("Count", item.Count));
-            nbt.Add(new NbtShort("Damage", item.Metadata));
+            NbtCompound nbt = new NbtCompound
+            {
+                new NbtShort("id", item.Id),
+                new NbtByte("Count", item.Count),
+                new NbtShort("Damage", item.Metadata),
 
-            nbt.Add(new NbtByte("Slot", (byte)slot));
+                new NbtByte("Slot", (byte)slot)
+            };
 
             return nbt;
         }
@@ -279,35 +339,41 @@ namespace PlayerSave
             return new NbtInt("foodLevel", player.HungerManager.Hunger);
         }
 
-        static NbtList GetNbtEffects(this Player player)
+        /*static NbtList GetNbtEffects(this Player player)
         {
             NbtList nbt = new NbtList("ActiveEffects", NbtTagType.Compound);
             foreach (Effect effect in player.Effects.Values)
             {
-                NbtCompound nbtCompound = new NbtCompound();
-                nbtCompound.Add(new NbtByte("Id", (byte)effect.EffectId));
-                nbtCompound.Add(new NbtInt("Duration", effect.Duration));
-                nbtCompound.Add(new NbtByte("ShowParticles", (byte)(effect.Particles ? 1 : 0)));
+                NbtCompound nbtCompound = new NbtCompound
+                {
+                    new NbtByte("Id", (byte)effect.EffectId),
+                    new NbtInt("Duration", effect.Duration),
+                    new NbtByte("ShowParticles", (byte)(effect.Particles ? 1 : 0))
+                };
                 nbt.Add(nbtCompound);
             }
 
             return nbt;
-        }
+        }*/
 
         static NbtList GetNbtPos(this Player player)
         {
-            NbtList nbt = new NbtList("Pos", NbtTagType.Double);
-            nbt.Add(new NbtDouble(player.KnownPosition.X));
-            nbt.Add(new NbtDouble(player.KnownPosition.Y));
-            nbt.Add(new NbtDouble(player.KnownPosition.Z));
+            NbtList nbt = new NbtList("Pos", NbtTagType.Double)
+            {
+                new NbtDouble(player.KnownPosition.X),
+                new NbtDouble(player.KnownPosition.Y),
+                new NbtDouble(player.KnownPosition.Z)
+            };
             return nbt;
         }
 
         static NbtList GetNbtRotation(this Player player)
         {
-            NbtList nbt = new NbtList("Rotation", NbtTagType.Float);
-            nbt.Add(new NbtFloat(player.KnownPosition.Yaw));
-            nbt.Add(new NbtFloat(player.KnownPosition.Pitch));
+            NbtList nbt = new NbtList("Rotation", NbtTagType.Float)
+            {
+                new NbtFloat(player.KnownPosition.Yaw),
+                new NbtFloat(player.KnownPosition.Pitch)
+            };
             return nbt;
         }
 
