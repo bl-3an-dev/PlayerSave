@@ -386,14 +386,14 @@ namespace PlayerSave
             return new NbtFloat("FallDistance", (float) 0.0);
         }
 
-        static NbtShort GetNbtFire(this Player player) // TODO
+        static NbtShort GetNbtFire(this Player player)
         {
-            return new NbtShort("Fire", 0);
+            return new NbtShort("Fire", player.HealthManager.IsOnFire ? 1 : 0);
         }
 
-        static NbtShort GetNbtAir(this Player player) // TODO
+        static NbtShort GetNbtAir(this Player player)
         {
-            return new NbtShort("Air", 300);
+            return new NbtShort("Air", player.HealthManager.Air);
         }
 
         static NbtByte GetNbtOnGround(this Player player)
@@ -401,9 +401,9 @@ namespace PlayerSave
             return new NbtByte("OnGround", player.IsOnGround ? 1 : 0);
         }
 
-        static NbtByte GetNbtInvulnerable(this Player player) // TODO
+        static NbtByte GetNbtInvulnerable(this Player player)
         {
-            return new NbtByte("Invulnerable", 0);
+            return new NbtByte("Invulnerable", player.HealthManager.IsInvulnerable ? 1 : 0);
         }
 
         static NbtString GetNbtNameTag(this Player player)

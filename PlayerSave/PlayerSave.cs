@@ -5,7 +5,7 @@ using MiNET.Plugins.Attributes;
 namespace PlayerSave
 {
 
-    [Plugin(PluginName = "PlayerSave", Description = "PlayerSave", PluginVersion = "1.2", Author = "wsj7178, bl_3an_dev")]
+    [Plugin(PluginName = "PlayerSave", Description = "PlayerSave", PluginVersion = "1.25", Author = "wsj7178, bl_3an_dev")]
     public class PlayerSave : Plugin
     {
 
