@@ -9,10 +9,10 @@ MINET Plugin | PlayerSave
 - [x] Level
 - [x] Inventory, SelectedInventorySlot
 - [ ] EnderChestInventory
-- [x] Achievements
-- [ ] ActiveEffects
+- [ ] Achievements (TODO)
+- [ ] ActiveEffects (TODO)
 - [x] playerGameType
-- [x] FallDistance
+- [ ] FallDistance (TODO)
 - [x] Fire
 - [x] Air
 - [x] OnGround
