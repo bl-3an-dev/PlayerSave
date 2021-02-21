@@ -24,14 +24,13 @@ namespace PlayerSave
                 return;
             }
 
-            
             try
             {
                 NbtFile file = new NbtFile();
 
                 file.LoadFromFile(path, NbtCompression.ZLib, null);
 
-                NbtCompound nbt = (NbtCompound)file.RootTag;
+                NbtCompound nbt = (NbtCompound) file.RootTag;
 
                 NbtString levelName = nbt["Level"] as NbtString;
 
@@ -114,7 +113,6 @@ namespace PlayerSave
 
         public static void CreatePlayerData(Player player, bool async = false)
         {
-
             NbtCompound namedTag = new NbtCompound("")
             {
 
@@ -127,14 +125,12 @@ namespace PlayerSave
                     new NbtDouble(player.KnownPosition.Y),
                     new NbtDouble(player.KnownPosition.Z)
                 },
-
                 new NbtList("Motion", NbtTagType.Double)
                 {
                     new NbtDouble(0.0),
                     new NbtDouble(0.0),
                     new NbtDouble(0.0)
                 },
-
                 new NbtList("Rotation", NbtTagType.Float)
                 {
                     new NbtFloat(player.KnownPosition.Yaw),
@@ -144,9 +140,8 @@ namespace PlayerSave
                 new NbtString("Level", player.Level.LevelName ?? ""),
 
                 new NbtList("Inventory", NbtTagType.Compound),
-                new NbtList("EnderChestInventory", NbtTagType.Compound),
-
                 new NbtInt("SelectedInventorySlot", player.Inventory.InHandSlot),
+                new NbtList("EnderChestInventory", NbtTagType.Compound),
 
                 new NbtCompound("Achievements"),
 
@@ -169,19 +164,14 @@ namespace PlayerSave
                 new NbtFloat("Health", player.HealthManager.Health),
 
                 new NbtFloat("XpP", player.ExperienceManager.Experience),
-
                 new NbtInt("XpLevel", (int) player.ExperienceManager.ExperienceLevel),
 
                 new NbtFloat("foodSaturationLevel", (float) player.HungerManager.Saturation),
-
                 new NbtFloat("foodExhaustionLevel", (float) player.HungerManager.Exhaustion),
-
                 new NbtInt("foodLevel", player.HungerManager.Hunger)
 
             };
-
             player.GetServer().SavePlayerData(player.PlayerInfo.Username, namedTag, async);
-
         }
 
         public static int Microtime()
@@ -192,30 +182,55 @@ namespace PlayerSave
 
         public static void Save(this Player player, bool async = false)
         {
-            NbtCompound namedTag = new NbtCompound("")
-            {
-                player.GetNbtPos(),
-                player.GetNbtRotation(),
+            string path = Config.GetProperty("PluginDirectory", ".\\") + "\\PlayerSave\\players\\" + player.PlayerInfo.Username.ToLower() + ".dat";
 
-                player.GetNbtHealth(),
-                //player.GetNbtEffects(),
+            NbtFile file = new NbtFile();
 
-                player.GetFoodNbt(),
-                player.GetNbtFoodExhaustionLevel(),
-                player.GetNbtFoodSaturationLevel(),
+            file.LoadFromFile(path, NbtCompression.ZLib, null);
 
-                player.GetNbtXpLevel(),
-                player.GetNbtXpP(),
+            NbtCompound nbt = (NbtCompound) file.RootTag;
 
-                player.GetNbtInventory(),
-                player.GetNbtSelectedInventorySlot(),
+            //nbt["firstPlayed"] = player.GetNbtfirstPlayed();
+            nbt["lastPlayed"] = player.GetNbtlastPlayed();
 
-                player.GetNbtLevel(),
+            nbt["Pos"] = player.GetNbtPos();
+            nbt["Motion"] = player.GetNbtMotion();
+            nbt["Rotation"] = player.GetNbtRotation();
 
-                player.GetNbtPlayerGameType()
-            };
+            nbt["Level"] = player.GetNbtLevel();
 
-            player.GetServer().SavePlayerData(player.PlayerInfo.Username, namedTag, async);
+            nbt["Inventory"] = player.GetNbtInventory();
+            nbt["SelectedInventorySlot"] = player.GetNbtSelectedInventorySlot();
+            nbt["EnderChestInventory"] = player.GetNbtEnderChestInventory();
+
+            //nbt["Achievements"] = player.GetNbtAchievements(),
+
+            //nbt["ActiveEffects"] = player.GetNbtEffects(),
+
+            nbt["playerGameType"] = player.GetNbtplayerGameType();
+
+            nbt["FallDistance"] = player.GetNbtFallDistance();
+
+            nbt["Fire"] = player.GetNbtFire();
+
+            nbt["Air"] = player.GetNbtAir();
+
+            nbt["OnGround"] = player.GetNbtOnGround();
+
+            nbt["Invulnerable"] = player.GetNbtInvulnerable();
+
+            //nbt["NameTag"] = player.GetNbtNameTag();
+
+            nbt["Health"] = player.GetNbtHealth();
+
+            nbt["XpP"] = player.GetNbtXpP();
+            nbt["XpLevel"] = player.GetNbtXpLevel();
+
+            nbt["foodSaturationLevel"] = player.GetNbtfoodSaturationLevel();
+            nbt["foodExhaustionLevel"] = player.GetNbtfoodExhaustionLevel();
+            nbt["foodLevel"] = player.GetNbtfoodLevel();
+
+            player.GetServer().SavePlayerData(player.PlayerInfo.Username, nbt, async);
         }
 
         public static MiNetServer GetServer(this Player player)
@@ -234,7 +249,8 @@ namespace PlayerSave
                 try
                 {
                     string path = Config.GetProperty("PluginDirectory", ".\\") + "\\PlayerSave\\players\\";
-                    if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+                    if (!Directory.Exists(path))
+                        Directory.CreateDirectory(path);
                     ((NbtFile)((object[])obj)[0]).SaveToFile(path + ((object[])obj)[1].ToString().ToLower() + ".dat", NbtCompression.ZLib);
                 }
                 catch (Exception e)
@@ -258,33 +274,51 @@ namespace PlayerSave
             }
         }
 
-        static NbtInt GetNbtPlayerGameType(this Player player)
+        static NbtLong GetNbtfirstPlayed(this Player player)
         {
-            return new NbtInt("playerGameType", (int)player.GameMode);
+            return new NbtLong("firstPlayed", Microtime());
+        }
+
+        static NbtLong GetNbtlastPlayed(this Player player)
+        {
+            return new NbtLong("lastPlayed", Microtime());
+        }
+
+        static NbtList GetNbtPos(this Player player)
+        {
+            NbtList nbt = new NbtList("Pos", NbtTagType.Double)
+            {
+                new NbtDouble(player.KnownPosition.X),
+                new NbtDouble(player.KnownPosition.Y),
+                new NbtDouble(player.KnownPosition.Z)
+            };
+            return nbt;
+        }
+
+        static NbtList GetNbtMotion(this Player player) // TODO
+        {
+            NbtList nbt = new NbtList("Motion", NbtTagType.Double)
+            {
+                new NbtDouble(0.0),
+                new NbtDouble(0.0),
+                new NbtDouble(0.0)
+            };
+            return nbt;
+        }
+
+        static NbtList GetNbtRotation(this Player player)
+        {
+            NbtList nbt = new NbtList("Rotation", NbtTagType.Float)
+            {
+                new NbtFloat(player.KnownPosition.Yaw),
+                new NbtFloat(player.KnownPosition.Pitch)
+            };
+            return nbt;
         }
 
         static NbtString GetNbtLevel(this Player player)
         {
             return new NbtString("Level", player.Level.LevelName ?? "");
-        }
-
-        public static NbtCompound NbtSerialize(this Item item, int slot = 1)
-        {
-            NbtCompound nbt = new NbtCompound
-            {
-                new NbtShort("id", item.Id),
-                new NbtByte("Count", item.Count),
-                new NbtShort("Damage", item.Metadata),
-
-                new NbtByte("Slot", (byte)slot)
-            };
-
-            return nbt;
-        }
-
-        static NbtInt GetNbtSelectedInventorySlot(this Player player)
-        {
-            return new NbtInt("SelectedInventorySlot", player.Inventory.InHandSlot);
         }
 
         static NbtList GetNbtInventory(this Player player)
@@ -309,9 +343,77 @@ namespace PlayerSave
 
             NbtList nbt = new NbtList("Inventory", tags, NbtTagType.Compound);
 
-            //@TODO EnderChest
+            return nbt;
+        }
+
+        static NbtInt GetNbtSelectedInventorySlot(this Player player)
+        {
+            return new NbtInt("SelectedInventorySlot", player.Inventory.InHandSlot);
+        }
+
+        static NbtList GetNbtEnderChestInventory(this Player player) // TODO
+        {
+            NbtList nbt = new NbtList("EnderChestInventory", NbtTagType.Compound);
 
             return nbt;
+        }
+
+
+        /*static NbtList GetNbtActiveEffects(this Player player)
+            {
+                NbtList nbt = new NbtList("ActiveEffects", NbtTagType.Compound);
+                foreach (Effect effect in player.Effects.Values)
+                {
+                    NbtCompound nbtCompound = new NbtCompound
+                    {
+                        new NbtByte("Id", (byte)effect.EffectId),
+                        new NbtInt("Duration", effect.Duration),
+                        new NbtByte("ShowParticles", (byte)(effect.Particles ? 1 : 0))
+                    };
+                    nbt.Add(nbtCompound);
+                }
+
+                return nbt;
+            }*/
+
+        static NbtInt GetNbtplayerGameType(this Player player)
+        {
+            return new NbtInt("playerGameType", (int) player.GameMode);
+        }
+
+        static NbtFloat GetNbtFallDistance(this Player player) // TODO
+        {
+            return new NbtFloat("FallDistance", (float) 0.0);
+        }
+
+        static NbtShort GetNbtFire(this Player player) // TODO
+        {
+            return new NbtShort("Fire", 0);
+        }
+
+        static NbtShort GetNbtAir(this Player player) // TODO
+        {
+            return new NbtShort("Air", 300);
+        }
+
+        static NbtByte GetNbtOnGround(this Player player)
+        {
+            return new NbtByte("OnGround", player.IsOnGround ? 1 : 0);
+        }
+
+        static NbtByte GetNbtInvulnerable(this Player player) // TODO
+        {
+            return new NbtByte("Invulnerable", 0);
+        }
+
+        static NbtString GetNbtNameTag(this Player player)
+        {
+            return new NbtString("NameTag", player.PlayerInfo.Username);
+        }
+
+        static NbtFloat GetNbtHealth(this Player player)
+        {
+            return new NbtFloat("Health", player.HealthManager.Health);
         }
 
         static NbtFloat GetNbtXpP(this Player player)
@@ -321,65 +423,36 @@ namespace PlayerSave
 
         static NbtInt GetNbtXpLevel(this Player player)
         {
-            return new NbtInt("XpLevel", (int)player.ExperienceManager.ExperienceLevel);
+            return new NbtInt("XpLevel", (int) player.ExperienceManager.ExperienceLevel);
         }
 
-        static NbtFloat GetNbtFoodSaturationLevel(this Player player)
+        static NbtFloat GetNbtfoodSaturationLevel(this Player player)
         {
-            return new NbtFloat("foodSaturationLevel", (float)player.HungerManager.Saturation);
+            return new NbtFloat("foodSaturationLevel", (float) player.HungerManager.Saturation);
         }
 
-        static NbtFloat GetNbtFoodExhaustionLevel(this Player player)
+        static NbtFloat GetNbtfoodExhaustionLevel(this Player player)
         {
-            return new NbtFloat("foodExhaustionLevel", (float)player.HungerManager.Exhaustion);
+            return new NbtFloat("foodExhaustionLevel", (float) player.HungerManager.Exhaustion);
         }
 
-        static NbtInt GetFoodNbt(this Player player)
+        static NbtInt GetNbtfoodLevel(this Player player)
         {
             return new NbtInt("foodLevel", player.HungerManager.Hunger);
         }
 
-        /*static NbtList GetNbtEffects(this Player player)
+        public static NbtCompound NbtSerialize(this Item item, int slot = 1)
         {
-            NbtList nbt = new NbtList("ActiveEffects", NbtTagType.Compound);
-            foreach (Effect effect in player.Effects.Values)
+            NbtCompound nbt = new NbtCompound
             {
-                NbtCompound nbtCompound = new NbtCompound
-                {
-                    new NbtByte("Id", (byte)effect.EffectId),
-                    new NbtInt("Duration", effect.Duration),
-                    new NbtByte("ShowParticles", (byte)(effect.Particles ? 1 : 0))
-                };
-                nbt.Add(nbtCompound);
-            }
+                new NbtShort("id", item.Id),
+                new NbtByte("Count", item.Count),
+                new NbtShort("Damage", item.Metadata),
 
-            return nbt;
-        }*/
-
-        static NbtList GetNbtPos(this Player player)
-        {
-            NbtList nbt = new NbtList("Pos", NbtTagType.Double)
-            {
-                new NbtDouble(player.KnownPosition.X),
-                new NbtDouble(player.KnownPosition.Y),
-                new NbtDouble(player.KnownPosition.Z)
+                new NbtByte("Slot", (byte) slot)
             };
-            return nbt;
-        }
 
-        static NbtList GetNbtRotation(this Player player)
-        {
-            NbtList nbt = new NbtList("Rotation", NbtTagType.Float)
-            {
-                new NbtFloat(player.KnownPosition.Yaw),
-                new NbtFloat(player.KnownPosition.Pitch)
-            };
             return nbt;
-        }
-
-        static NbtFloat GetNbtHealth(this Player player)
-        {
-            return new NbtFloat("Health", player.HealthManager.Health);
         }
 
     }
