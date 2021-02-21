@@ -5,7 +5,7 @@ MINET Plugin | PlayerSave
 
 ## 저장되는 데이터 (PMMP 구현)
 - [x] firstPlayed, lastPlayed
-- [x] Pos, Motionm Rotation
+- [x] Pos, Motion, Rotation
 - [x] Level
 - [x] Inventory, SelectedInventorySlot
 - [ ] EnderChestInventory
